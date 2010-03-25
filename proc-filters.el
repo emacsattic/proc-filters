@@ -1,12 +1,12 @@
 ;;; proc-filters.el -- some generally useful process filters
 
-;; Copyright (C) 1992, 93, 99, 00, 02, 05, 2006 Noah S. Friedman
+;; Copyright (C) 1992, 93, 99, 00, 02, 05, 06, 2010 Noah S. Friedman
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 
-;; $Id: proc-filters.el,v 1.29 2006/10/21 03:09:58 friedman Exp $
+;; $Id: proc-filters.el,v 1.30 2010/03/23 06:21:21 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, you can either send email to this
-;; program's maintainer or write to: The Free Software Foundation,
-;; Inc.; 51 Franklin Street, Fifth Floor; Boston, MA 02110-1301, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -78,6 +76,12 @@ and `process-filter-using-insert'.")
 
 (defvar proc-filter-carriage-overlay nil)
 (make-variable-buffer-local 'proc-filter-carriage-overlay)
+
+
+(defsubst proc-filter-symbol-on-hook (symbol hook)
+  (or (memq symbol (symbol-value hook))
+      (and (memq t (symbol-value hook))
+           (memq symbol (default-value hook)))))
 
 
 ;;;###autoload
@@ -352,8 +356,8 @@ processed until replacement text is output."
   "Possibly strip ANSI terminal color escape sequences."
   (cond ((and (boundp 'ansi-color-for-comint-mode)
               ansi-color-for-comint-mode
-              (memq 'ansi-color-process-output
-                    comint-output-filter-functions)))
+              (proc-filter-symbol-on-hook 'ansi-color-process-output
+                                          'comint-output-filter-functions)))
         (t
          (while (re-search-forward "\e\\[[0-9;]*m" nil t)
            (delete-region (match-beginning 0) (match-end 0))))))
