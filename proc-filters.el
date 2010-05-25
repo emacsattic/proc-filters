@@ -6,7 +6,7 @@
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 
-;; $Id: proc-filters.el,v 1.30 2010/03/23 06:21:21 friedman Exp $
+;; $Id: proc-filters.el,v 1.31 2010/04/29 05:57:33 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -361,6 +361,15 @@ processed until replacement text is output."
         (t
          (while (re-search-forward "\e\\[[0-9;]*m" nil t)
            (delete-region (match-beginning 0) (match-end 0))))))
+
+;; This is not on proc-filter-shell-output-filters by default, but it can
+;; be useful in combination with ansi-color-for-coming-mode since color ls
+;; will sometimes emit CSI K sequences for lines longer than the terminal
+;; width as reported by TIOCGWINSZ.
+(defun proc-filter-misc-ctlseqs (&optional string)
+  "Strip various terminal escape sequences"
+  (while (re-search-forward "\e\\[[0-9?]*[KJ]" nil t)
+    (delete-region (match-beginning 0) (match-end 0))))
 
 ;; To avoid output chunking problems, this function ignores the current
 ;; output line but does check the line just immediately previous to the
