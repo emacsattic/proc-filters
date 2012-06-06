@@ -6,7 +6,7 @@
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 
-;; $Id: proc-filters.el,v 1.31 2010/04/29 05:57:33 friedman Exp $
+;; $Id: proc-filters.el,v 1.32 2011/06/13 18:44:13 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -219,20 +219,22 @@ If called with no prefix argument, toggle current state."
 (defun proc-filter-shell-output-filter (&optional string)
   "Run all filters in `proc-filter-shell-output-filters'.
 This is a reasonable thing to put on `comint-output-filter-functions'."
-  (and proc-filter-shell-output-filter-mode
-       (let* ((inhibit-field-text-motion t)
-              (buffer-read-only nil)
-              (filters proc-filter-shell-output-filters)
-              (end (process-mark (get-buffer-process (current-buffer))))
-              (beg (process-filter-last-output-start string end)))
-         (save-excursion
-           (save-restriction
-             (save-match-data
-               (narrow-to-region beg end)
-               (while filters
-                 (goto-char (point-min))
-                 (funcall (car filters) string)
-                 (setq filters (cdr filters)))))))))
+  (when proc-filter-shell-output-filter-mode
+    (let ((proc (get-buffer-process (current-buffer))))
+      (when proc
+        (let* ((inhibit-field-text-motion t)
+               (buffer-read-only nil)
+               (filters proc-filter-shell-output-filters)
+               (end (process-mark proc))
+               (beg (process-filter-last-output-start string end)))
+          (save-excursion
+            (save-restriction
+              (save-match-data
+                (narrow-to-region beg end)
+                (while filters
+                  (goto-char (point-min))
+                  (funcall (car filters) string)
+                  (setq filters (cdr filters)))))))))))
 
 (defun proc-filter-carriage-motion (&optional string)
   "Interpret carriage control characters in buffer.
