@@ -6,7 +6,7 @@
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 
-;; $Id: proc-filters.el,v 1.32 2011/06/13 18:44:13 friedman Exp $
+;; $Id: proc-filters.el,v 1.33 2012/07/09 23:25:20 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -435,6 +435,13 @@ Leave a prompt visible."
         (and (re-search-backward pattern nil t)
              (delete-region (point-min) (point)))
         (goto-char orig-point))))))
+
+
+(defun proc-filter-sentinel (proc event)
+  (unless (process-live-p proc)
+    (save-excursion
+      (set-buffer (process-buffer proc))
+      (setq comint-output-filter-functions nil))))
 
 (provide 'proc-filters)
 
