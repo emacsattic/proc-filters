@@ -6,7 +6,7 @@
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 
-;; $Id: proc-filters.el,v 1.33 2012/07/09 23:25:20 friedman Exp $
+;; $Id: proc-filters.el,v 1.35 2014/12/21 00:09:22 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -102,6 +102,18 @@ directly."
         (t
          (process-send-string proc string)
          (process-send-string proc proc-filter-simple-send-eol))))
+
+;;;###autoload
+(define-minor-mode proc-filter-crlf-input-mode
+  "Send CRLF instead of LF with end of input."
+  :init-value nil
+  :lighter    " CRLF"
+  :keymap     nil
+  (setq-local comint-input-sender 'proc-filter-simple-send)
+  (setq-local proc-filter-simple-send-eol
+              (if proc-filter-crlf-input-mode
+                  "\r\n"
+                "\n")))
 
 
 ;;;###autoload
@@ -413,6 +425,8 @@ Leave a prompt visible."
   (save-match-data
     (let ((orig-point (point-marker))
           (proc (get-buffer-process (current-buffer)))
+          ;; Ignore read-only text properties, but not read-only buffers.
+          (inhibit-read-only (not buffer-read-only))
           pattern)
       (cond
        ((and (boundp 'shell-prompt-pattern)
