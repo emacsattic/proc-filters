@@ -6,7 +6,7 @@
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 
-;; $Id: proc-filters.el,v 1.35 2014/12/21 00:09:22 friedman Exp $
+;; $Id: proc-filters.el,v 1.36 2016/11/24 20:24:53 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -352,7 +352,7 @@ processed until replacement text is output."
 (defun proc-filter-column-motion (&optional string)
   "Process column positioning escape sequences."
   (while (re-search-forward "\e\\[\\([0-9]+\\)G" nil t)
-    (let ((n (string-to-int (buffer-substring (match-beginning 1)
+    (let ((n (string-to-number (buffer-substring (match-beginning 1)
                                               (match-end 1))))
           distance)
       (delete-region (match-beginning 0) (match-end 0))
