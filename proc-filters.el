@@ -1,25 +1,10 @@
 ;;; proc-filters.el -- some generally useful process filters
 
-;; Copyright (C) 1992, 93, 99, 00, 02, 05, 06, 2010 Noah S. Friedman
-
 ;; Author: Noah Friedman <friedman@splode.com>
-;; Maintainer: friedman@splode.com
-;; Keywords: extensions
+;; Created: 1992
+;; Public domain.
 
-;; $Id: proc-filters.el,v 1.36 2016/11/24 20:24:53 friedman Exp $
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; $Id: proc-filters.el,v 1.38 2017/11/03 23:22:17 friedman Exp $
 
 ;;; Commentary:
 
@@ -84,7 +69,6 @@ and `process-filter-using-insert'.")
            (memq symbol (default-value hook)))))
 
 
-;;;###autoload
 (defun proc-filter-simple-send (proc string)
   "Function to send to PROCESS the STRING submitted by user.
 This function is like `comint-simple-send', but the end-of-line sequence is
@@ -116,7 +100,6 @@ directly."
                 "\n")))
 
 
-;;;###autoload
 (defun process-filter-using-insert-before-markers (proc string
                                                         &optional filters)
   (let (proc-mark region-begin window)
@@ -138,7 +121,6 @@ directly."
          (>= (window-start window) region-begin)
          (set-window-start window region-begin 'noforce))))
 
-;;;###autoload
 (defun process-filter-using-insert (proc string &optional filters)
   (let* ((original-buffer (current-buffer))
          (process-buffer (process-buffer proc))
@@ -175,7 +157,6 @@ directly."
         (setq fns (cdr fns))))))
 
 
-;;;###autoload
 (defun process-re-output-filter (string &rest re)
   "Generic comint process output filter.
 The argument STRING is only used if the current buffer is not a comint
@@ -351,16 +332,23 @@ processed until replacement text is output."
 
 (defun proc-filter-column-motion (&optional string)
   "Process column positioning escape sequences."
-  (while (re-search-forward "\e\\[\\([0-9]+\\)G" nil t)
-    (let ((n (string-to-number (buffer-substring (match-beginning 1)
-                                              (match-end 1))))
+  (while (re-search-forward "\e\\[\\(?:[0-9]*;\\)?\\([0-9]+\\)[GH]" nil t)
+    (let ((n (1- (string-to-number (match-string 1))))
           distance)
       (delete-region (match-beginning 0) (match-end 0))
       ;; current-column doesn't work when narrowing is in effect such that
       ;; column 0 isn't included in the region.
       (setq distance (- n (save-restriction (widen) (current-column))))
-      (and (> distance 0)
-           (insert-before-markers (make-string distance ?\x20))))))
+      (cond ((and (= 1 n)
+                  (= ?\n (char-after (point))))
+             nil) ;; don't erase lines entirely
+            ((> distance 0)
+             (insert-before-markers (make-string distance ?\x20)))
+            ((< distance 0)
+             (save-restriction
+               (widen)
+               (delete-region (point) (+ (point) distance))))))))
+
 
 ;; Some linux distributions configure user sessions by default to enable
 ;; color highlighting of all output from `ls'.
