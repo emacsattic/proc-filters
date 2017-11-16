@@ -4,7 +4,7 @@
 ;; Created: 1992
 ;; Public domain.
 
-;; $Id: proc-filters.el,v 1.38 2017/11/03 23:22:17 friedman Exp $
+;; $Id: proc-filters.el,v 1.39 2017/11/07 20:39:55 friedman Exp $
 
 ;;; Commentary:
 
@@ -333,7 +333,7 @@ processed until replacement text is output."
 (defun proc-filter-column-motion (&optional string)
   "Process column positioning escape sequences."
   (while (re-search-forward "\e\\[\\(?:[0-9]*;\\)?\\([0-9]+\\)[GH]" nil t)
-    (let ((n (1- (string-to-number (match-string 1))))
+    (let ((n (max 0 (1- (string-to-number (match-string 1)))))
           distance)
       (delete-region (match-beginning 0) (match-end 0))
       ;; current-column doesn't work when narrowing is in effect such that
